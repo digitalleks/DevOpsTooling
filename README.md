@@ -114,7 +114,64 @@ rpcinfo -p | grep nfs
 TCP port 111, UDP port 111 and TCP port 2049 are opened in the NFS Server security group:\
 <img width="688" alt="NFS Inbound Rule" src="https://user-images.githubusercontent.com/61512079/184516799-28b727a4-81b5-40e0-9137-e43c5e46ce5e.PNG">
 
-Next we set up the Webservers in same subnet as the NFS on AWS:
+Next we set up the Webservers in same subnet as the NFS on AWS:\
+<img width="529" alt="webserver1" src="https://user-images.githubusercontent.com/61512079/184556782-887d1ce5-62de-4930-b648-45195fe8f8b9.PNG">\
+Installation of the NFS client:
+```bash
+sudo yum install nfs-utils nfs4-acl-tools -y
+```
+Next we created directory /var/www and mount to the NFS Server apps directory:
+```bash
+sudo mkdir /var/www
+sudo mount -t nfs -o rw,nosuid 172.31.43.227:/mnt/apps /var/www
+```
+The mount was verified successfuly as shown below:\
+<img width="405" alt="Web-mount-nfs" src="https://user-images.githubusercontent.com/61512079/184556893-493536e7-b2fe-4236-982b-eea428980513.PNG">
+
+Next we installed Remi’s repository, Apache and PHP:
+```bash
+sudo yum install httpd -y
+sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+sudo dnf install dnf-utils http://rpms.remirepo.net/enterprise/remi-release-8.rpm
+sudo dnf module reset php
+sudo dnf module enable php:remi-7.4
+sudo dnf install php php-opcache php-gd php-curl php-mysqlnd
+sudo systemctl start php-fpm
+sudo systemctl enable php-fpm
+setsebool -P httpd_execmem 1
+```
+Output of the installation is shown below:\
+<img width="506" alt="EPEL1" src="https://user-images.githubusercontent.com/61512079/184557108-4cae788d-6c46-4cb2-881c-8add0254b2aa.PNG">\
+<img width="355" alt="Remi-Release" src="https://user-images.githubusercontent.com/61512079/184557116-1b2a1c7e-f17f-48f7-9b08-2eee06e02701.PNG">\
+<img width="939" alt="Remi-Release1" src="https://user-images.githubusercontent.com/61512079/184557123-83a6a5b6-ac41-4dda-9b52-d85883df435f.PNG">\
+<img width="922" alt="PHP-Install" src="https://user-images.githubusercontent.com/61512079/184557130-95d42b09-250f-43c0-a138-ffa51c60cc8b.PNG">\
+<img width="719" alt="PHP-enable" src="https://user-images.githubusercontent.com/61512079/184557135-271cbd80-22c5-4906-9001-16e250ea8276.PNG">\
+
+The apache files created on the webserver was confirmed to be on the mounted directory by creating a test file and seeing the same on the NFS server mount directory:\
+```bash
+cd /var/www
+sudo touch test.txt
+```
+<img width="288" alt="NFS Test" src="https://user-images.githubusercontent.com/61512079/184557226-503570a7-cd17-4a85-963b-7f814981a504.PNG">\
+
+The same file is accessible on webserver2 as shown:\
+<img width="232" alt="Access-test-file" src="https://user-images.githubusercontent.com/61512079/184557257-a83d4b2b-679e-44dd-8380-90124afc8bf6.PNG">
+
+Next we mount the webserver log directory to the NFS log directory:
+```bash
+sudo mount -t nfs -o rw,nosuid 172.31.43.227:/mnt/logs /var/log
+```
+<img width="378" alt="Log-mount" src="https://user-images.githubusercontent.com/61512079/184557312-dba33b89-e69c-4380-8338-731bd8513677.PNG">\
+Make the mount persisitent in the /etc/fstab file.
+
+
+
+
+
+
+
+
+
 
 
 
