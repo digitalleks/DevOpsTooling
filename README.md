@@ -155,7 +155,7 @@ sudo touch test.txt
 <img width="288" alt="NFS Test" src="https://user-images.githubusercontent.com/61512079/184557226-503570a7-cd17-4a85-963b-7f814981a504.PNG">\
 
 The same file is accessible on webserver2 as shown:\
-<img width="232" alt="Access-test-file" src="https://user-images.githubusercontent.com/61512079/184557257-a83d4b2b-679e-44dd-8380-90124afc8bf6.PNG">
+<img width="232" alt="Access-test-file" src="https://user-images.githubusercontent.com/61512079/184557257-a83d4b2b-679e-44dd-8380-90124afc8bf6.PNG">\
 
 Next we mount the webserver log directory to the NFS log directory:
 ```bash
@@ -163,6 +163,110 @@ sudo mount -t nfs -o rw,nosuid 172.31.43.227:/mnt/logs /var/log
 ```
 <img width="378" alt="Log-mount" src="https://user-images.githubusercontent.com/61512079/184557312-dba33b89-e69c-4380-8338-731bd8513677.PNG">\
 Make the mount persisitent in the /etc/fstab file.
+
+The next step is the creation of Database server to be used by the webserver.  An EC2 instance with Ubuntu  is created.  
+The we update and install mysql server as follow:
+```bash
+sudo apt-get update
+sudo apt install mysql-server
+```
+After the installation,  mysql service is started and enabled:
+```bash
+sudo systemctl start mysql
+sudo systemctl enable mysql
+```
+The MYSQL Service is confirmed running as follow:\
+<img width="543" alt="MYSQL SERVER STATUS" src="https://user-images.githubusercontent.com/61512079/184669174-29986a74-ab55-4f43-a20f-5375071ec37f.PNG">\
+
+Then we log on to the mysql database and create a user as follow:
+```bash
+sudo mysql
+```
+```mysql
+CREATE DATABASE tooling;
+CREATE USER 'webaccess'@'%' IDENTIFIED BY 'P@ssw0rd';
+GRANT ALL PRIVILEGES ON tooling.* TO 'webaccess'@'%' WITH GRANT OPTION;
+```
+The created user is confirmed as follow:
+<img width="263" alt="Webaccess user" src="https://user-images.githubusercontent.com/61512079/184669941-0edd941f-d853-44f6-b503-cbf22428d63a.PNG">\
+
+The bind address for the database is modified to 0.0.0.0:
+```bash
+sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
+```
+
+Next we restart the mysql service:
+```bash
+  sudo systemctl restart mysql
+ ```
+ 
+A website tooling code is fork from DAREY.IO GIT account to my git account.  Next I installed git on my Webserver instance:
+```bash
+sudo yum install git -y
+```
+After the git installed, the content of the forked directory is cloned using the git command below:
+```bash
+sudo git clone https://github.com/digitalleks/tooling
+```
+This confirmed as follow:\
+<img width="421" alt="git clone" src="https://user-images.githubusercontent.com/61512079/184662657-581d8509-0e7a-46f3-8843-bb07b436b88b.PNG">\
+
+Then the content of the clone directory is copied into our /var/www/html directory using the command below:
+```bash
+sudo cp -R ~/tooling/html/. /var/www/html
+```
+<img width="439" alt="html-confirmed" src="https://user-images.githubusercontent.com/61512079/184663104-739cbcb1-cd89-4b9f-af9b-f87dfebf9cd8.PNG">\
+
+
+Necessary permissions are granted as follow:
+```bash
+sudo setsebool -P httpd_can_network_connect=1
+sudo setsebool -P httpd_can_network_connect_db=1
+sudo setsebool -P httpd_execmem=1
+sudo setsebool -P httpd_use_nfs 1
+```
+Also, SELLinux is disabled using the command below:
+```bash
+sudo setenforce 0
+```
+This is made permanent by editing "SELINUX" entry to "disabled" in /etc/sysconfig/selinux :
+```bash
+sudo vi /etc/sysconfig/selinux
+```
+After this, the apache is restarted.
+```bash
+sudo systemctl restart httpd
+```
+
+For access to the database from the webserver, we installed mysql client on the websierver as follow:
+```bash
+sudo yum install mysql
+```
+After that, we apply the tooling script to the database using this command(where 172.31.41.49 is the IP address of the Database server):
+```bash
+sudo mysql -h 172.31.41.49 -u webaccess -p tooling < tooling-db.sql
+```
+This is confirmed successful with no error as shown below:\
+<img width="632" alt="script-apply" src="https://user-images.githubusercontent.com/61512079/184663968-be913121-fa12-403f-b6bb-dc02d0eaffd6.PNG">\
+
+Finally, we modify the Database IP in the function.php file in the html directory:
+```bash
+sudo vi /var/www/html/functions.php
+```
+The entries are edited as shown below:
+<img width="610" alt="function-php-edit" src="https://user-images.githubusercontent.com/61512079/184665069-3f3d3eae-636b-4538-8b48-d8ed87b70576.PNG">\
+
+Finally,  we test the access by using the public IP of the Webserver to access the index.php page on the browser as confirmed below:\
+<img width="506" alt="Login_Page" src="https://user-images.githubusercontent.com/61512079/184665434-58da7f7e-8102-4d0b-8794-c4541e40d289.PNG">\
+The username and password is supllied as "admin/admin' and access is confirmed as shown below:\
+<img width="762" alt="propitix Tool test" src="https://user-images.githubusercontent.com/61512079/184665666-db2a7fc1-c95f-45cb-933f-d049d80b4d55.PNG">
+
+
+
+
+
+
+
 
 
 
