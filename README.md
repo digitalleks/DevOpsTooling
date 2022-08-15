@@ -182,12 +182,13 @@ Then we log on to the mysql database and create a user as follow:
 ```bash
 sudo mysql
 ```
+
 ```mysql
 CREATE DATABASE tooling;
 CREATE USER 'webaccess'@'%' IDENTIFIED BY 'P@ssw0rd';
 GRANT ALL PRIVILEGES ON tooling.* TO 'webaccess'@'%' WITH GRANT OPTION;
 ```
-The created user is confirmed as follow:
+The created user is confirmed as follow:\
 <img width="263" alt="Webaccess user" src="https://user-images.githubusercontent.com/61512079/184669941-0edd941f-d853-44f6-b503-cbf22428d63a.PNG">\
 
 The bind address for the database is modified to 0.0.0.0:
@@ -253,7 +254,7 @@ Finally, we modify the Database IP in the function.php file in the html director
 ```bash
 sudo vi /var/www/html/functions.php
 ```
-The entries are edited as shown below:
+The entries are edited as shown below:\
 <img width="610" alt="function-php-edit" src="https://user-images.githubusercontent.com/61512079/184665069-3f3d3eae-636b-4538-8b48-d8ed87b70576.PNG">\
 
 Finally,  we test the access by using the public IP of the Webserver to access the index.php page on the browser as confirmed below:\
